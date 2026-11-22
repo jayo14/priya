@@ -11,6 +11,7 @@ from app.database.models.enums import ProcessingStatus
 from app.database.models.promotion import Promotion
 from app.database.models.source import DiscoveredItem
 from app.database.repositories.discovery_repo import DiscoveryRepository
+from app.intelligence.engine import IntelligenceEngine
 from app.processing.deduplicator import PromotionDeduplicator
 from app.processing.extractor import OfferExtractor
 from app.processing.filters import ContentFilter
@@ -52,6 +53,7 @@ class ProcessingPipeline:
         self.filter = ContentFilter()
         self.extractor = OfferExtractor()
         self.deduplicator = PromotionDeduplicator()
+        self.intelligence = IntelligenceEngine()
 
     def process_item(self, db: Session, item: DiscoveredItem) -> ProcessingItemResult:
         """Process a single DiscoveredItem through all pipeline stages."""
@@ -96,6 +98,16 @@ class ProcessingPipeline:
             promo, is_new = self.deduplicator.persist_or_corroborate(
                 db=db, discovered_item_id=item.id, offer=extracted
             )
+
+            # Stage 5: Promotion Intelligence & Scoring
+            try:
+                self.intelligence.evaluate_promotion(
+                    db=db, promotion=promo, perform_network_check=False
+                )
+            except Exception as intel_err:
+                logger.warning(
+                    f"Intelligence evaluation non-fatal warning on promo #{promo.id}: {intel_err}"
+                )
 
             item.processing_status = ProcessingStatus.PROCESSED
             item.processed_at = utc_now()

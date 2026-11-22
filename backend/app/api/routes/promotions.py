@@ -13,10 +13,12 @@ from app.database.models.enums import OfferType, ProcessingStatus, PromotionStat
 from app.database.models.promotion import Promotion
 from app.database.models.source import DiscoveredItem
 from app.database.repositories.promotion_repo import PromotionRepository
+from app.intelligence.engine import IntelligenceEngine
 from app.processing.pipeline import PipelineStats, ProcessingPipeline
 
 router = APIRouter(tags=["Promotions & Pipeline"])
 pipeline = ProcessingPipeline()
+intelligence_engine = IntelligenceEngine()
 
 
 # --- Pydantic Schemas ---
@@ -78,6 +80,45 @@ class ProcessingStatsResponse(BaseModel):
     total_canonical_promotions: int
 
 
+class VerificationCheckResponse(BaseModel):
+    id: int
+    check_type: str
+    result: str
+    status: str
+    details: Dict[str, Any]
+    checked_at: str
+
+    model_config = {"from_attributes": True}
+
+
+class EligibilityRuleResponse(BaseModel):
+    id: int
+    rule_type: str
+    country_code: Optional[str]
+    description: str
+    evidence_url: Optional[str]
+
+    model_config = {"from_attributes": True}
+
+
+class PromotionVerifyResponse(BaseModel):
+    promotion_id: int
+    confidence_score: int
+    status: str
+    is_safe: bool
+    summary_reasons: Dict[str, str]
+    verification_checks: List[VerificationCheckResponse]
+
+
+class PromotionEligibilityResponse(BaseModel):
+    promotion_id: int
+    status: str
+    is_nigeria_eligible: bool
+    payment_card_guidance: str
+    summary_notes: str
+    rules: List[EligibilityRuleResponse]
+
+
 # --- Endpoints ---
 
 
@@ -127,6 +168,7 @@ def list_promotions(
     provider_id: Optional[int] = None,
     status: Optional[PromotionStatus] = None,
     offer_type: Optional[OfferType] = None,
+    min_confidence: Optional[int] = Query(None, ge=0, le=100),
     nigeria_eligible: Optional[bool] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -140,6 +182,8 @@ def list_promotions(
         stmt = stmt.where(Promotion.status == status)
     if offer_type:
         stmt = stmt.where(Promotion.offer_type == offer_type)
+    if min_confidence is not None:
+        stmt = stmt.where(Promotion.confidence_score >= min_confidence)
 
     stmt = stmt.order_by(Promotion.first_discovered_at.desc()).offset(skip).limit(limit)
     promotions = list(db.execute(stmt).scalars().all())
@@ -236,3 +280,113 @@ def get_promotion(
             for lnk in promo.links
         ],
     )
+
+
+@router.post("/promotions/{promotion_id}/verify", response_model=PromotionVerifyResponse)
+def verify_promotion(
+    promotion_id: int,
+    perform_network_check: bool = Query(
+        False, description="Perform live HTTP redirect and network validation"
+    ),
+    db: Session = DbSession,
+):
+    """Run full promotion intelligence verification checks, update scoring and audit trail."""
+    promo = PromotionRepository.get_by_id(db, promotion_id)
+    if not promo:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+
+    res = intelligence_engine.evaluate_promotion(
+        db=db, promotion=promo, perform_network_check=perform_network_check
+    )
+    db.commit()
+    db.refresh(promo)
+
+    return PromotionVerifyResponse(
+        promotion_id=promo.id,
+        confidence_score=res.confidence_score,
+        status=res.status.value,
+        is_safe=not res.authenticity.is_scam
+        and (not res.link_inspections or res.link_inspections[0].is_safe),
+        summary_reasons=res.breakdown.reasons,
+        verification_checks=[
+            VerificationCheckResponse(
+                id=c.id,
+                check_type=c.check_type,
+                result=c.result,
+                status=c.status,
+                details=c.details,
+                checked_at=c.checked_at.isoformat(),
+            )
+            for c in promo.verification_checks
+        ],
+    )
+
+
+@router.get(
+    "/promotions/{promotion_id}/eligibility",
+    response_model=PromotionEligibilityResponse,
+)
+def get_promotion_eligibility(
+    promotion_id: int,
+    db: Session = DbSession,
+):
+    """Retrieve detailed regional and Nigerian banking usability rules for a promotion."""
+    promo = PromotionRepository.get_by_id(db, promotion_id)
+    if not promo:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+
+    provider_slug = promo.provider.slug if promo.provider else "unknown"
+    full_text = f"{promo.title}\n{promo.description or ''}"
+    res = intelligence_engine.eligibility_assessor.evaluate(
+        provider_slug=provider_slug,
+        eligible_countries=promo.eligible_countries,
+        excluded_countries=promo.excluded_countries,
+        account_requirements=promo.account_requirements,
+        payment_required=promo.payment_required,
+        raw_text=full_text,
+    )
+
+    return PromotionEligibilityResponse(
+        promotion_id=promo.id,
+        status=res.status,
+        is_nigeria_eligible=res.is_nigeria_eligible,
+        payment_card_guidance=res.payment_card_guidance,
+        summary_notes=res.summary_notes,
+        rules=[
+            EligibilityRuleResponse(
+                id=r.id,
+                rule_type=r.rule_type.value,
+                country_code=r.country_code,
+                description=r.description,
+                evidence_url=r.evidence_url,
+            )
+            for r in promo.eligibility_rules
+        ],
+    )
+
+
+@router.get(
+    "/promotions/{promotion_id}/verification-checks",
+    response_model=List[VerificationCheckResponse],
+)
+def list_promotion_verification_checks(
+    promotion_id: int,
+    db: Session = DbSession,
+):
+    """Retrieve historical verification audit checks for a promotion."""
+    promo = PromotionRepository.get_by_id(db, promotion_id)
+    if not promo:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+
+    checks = sorted(promo.verification_checks, key=lambda x: x.checked_at, reverse=True)
+    return [
+        VerificationCheckResponse(
+            id=c.id,
+            check_type=c.check_type,
+            result=c.result,
+            status=c.status,
+            details=c.details,
+            checked_at=c.checked_at.isoformat(),
+        )
+        for c in checks
+    ]
