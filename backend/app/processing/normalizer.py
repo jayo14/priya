@@ -43,6 +43,8 @@ def normalize_text(text: str) -> str:
 
     # Decode HTML entities (e.g. &amp;, &quot;, &#39;)
     decoded = html.unescape(text)
+    if "&" in decoded:
+        decoded = html.unescape(decoded)
 
     # Normalize unicode quotation marks and dashes
     cleaned = (
