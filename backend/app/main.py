@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.routes import (
     dashboard,
     health,
+    notifications,
     promotions,
     providers,
     settings as settings_route,
@@ -80,6 +81,7 @@ app.include_router(promotions.router, prefix=settings.API_PREFIX)
 app.include_router(dashboard.router, prefix=settings.API_PREFIX)
 app.include_router(providers.router, prefix=settings.API_PREFIX)
 app.include_router(watchlist.router, prefix=settings.API_PREFIX)
+app.include_router(notifications.router, prefix=settings.API_PREFIX)
 app.include_router(settings_route.router, prefix=settings.API_PREFIX)
 
 

@@ -7,11 +7,12 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.core.logging import setup_logging
-from app.database.models.enums import ProcessingStatus
+from app.database.models.enums import NotificationType, ProcessingStatus
 from app.database.models.promotion import Promotion
 from app.database.models.source import DiscoveredItem
 from app.database.repositories.discovery_repo import DiscoveryRepository
 from app.intelligence.engine import IntelligenceEngine
+from app.notifications.dispatcher import NotificationDispatcher
 from app.processing.deduplicator import PromotionDeduplicator
 from app.processing.extractor import OfferExtractor
 from app.processing.filters import ContentFilter
@@ -54,6 +55,7 @@ class ProcessingPipeline:
         self.extractor = OfferExtractor()
         self.deduplicator = PromotionDeduplicator()
         self.intelligence = IntelligenceEngine()
+        self.dispatcher = NotificationDispatcher()
 
     def process_item(self, db: Session, item: DiscoveredItem) -> ProcessingItemResult:
         """Process a single DiscoveredItem through all pipeline stages."""
@@ -107,6 +109,18 @@ class ProcessingPipeline:
             except Exception as intel_err:
                 logger.warning(
                     f"Intelligence evaluation non-fatal warning on promo #{promo.id}: {intel_err}"
+                )
+
+            # Stage 6: Real-Time Alerts Dispatch
+            try:
+                self.dispatcher.dispatch_promotion_alert(
+                    db=db,
+                    promotion=promo,
+                    notification_type=NotificationType.NEW_PROMOTION,
+                )
+            except Exception as notify_err:
+                logger.warning(
+                    f"Alert dispatch non-fatal error on promo #{promo.id}: {notify_err}"
                 )
 
             item.processing_status = ProcessingStatus.PROCESSED

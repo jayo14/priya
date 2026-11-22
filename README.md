@@ -25,13 +25,14 @@ When Priya finds an offer, she:
 
 ---
 
-## Current Status: Phase 5 Completed (Dashboard APIs, Watchlist, Settings & Nuxt 3 Frontend)
+## Current Status: Phase 7 Completed (Real-Time Notifications & Telegram Bot Integration)
 
 - [x] **Phase 1: Foundation & Scaffolding**: Modular monolith architecture, FastAPI backend, SQLAlchemy 2.x, Alembic, PostgreSQL 16 schema, 10 domain models, idempotent seeder, integration test suite.
 - [x] **Phase 2: Discovery Infrastructure**: Multi-source discovery engine supporting Telegram public channels, Reddit communities & search, RSS/Atom newsroom feeds, and public web announcement scrapers with scheduling.
 - [x] **Phase 3: Extraction & Classification**: Text/URL normalizer, promotional keyword & spam filtering, deterministic AI provider/plan/offer-type classifier, parameter extractor (codes, duration, discounts, country eligibility), and multi-source corroboration deduplicator.
 - [x] **Phase 4: Promotion Intelligence**: Safe URL inspection with SSRF defense, redirect resolution, brand impersonation detection, authenticity heuristics, dedicated Nigerian banking and payment card feasibility assessment, transparent 100-point confidence scoring rubric, and verification audit trails.
-- [x] **Phase 5: Dashboard Analytics, Watchlist & Nuxt 3 Frontend**: Dashboard statistics & activity feed, provider catalogue API, user watchlist endpoints, app settings API, and Nuxt 3 / Vue 3 frontend built with shadcn-vue tokens and Material Symbols Rounded icons.
+- [x] **Phase 5: Dashboard Analytics & Watchlist**: Dashboard statistics & activity feed, provider catalogue API, user watchlist endpoints, app settings API, and Nuxt 3 / Vue 3 frontend built with shadcn-vue tokens and Material Symbols Rounded icons.
+- [x] **Phase 7: Real-Time Alerts & Telegram Bot Integration**: Direct Telegram Bot API client, structured HTML alert formatting with Nigerian card guidance, automated duplicate alert prevention in PostgreSQL, expiring deal scanning, test notification API, and settings UI test trigger.
 
 ---
 
@@ -72,6 +73,10 @@ priya/
 │   │   │   ├── expiry.py          # Expiration tracking & urgency
 │   │   │   ├── scoring.py         # 100-point transparent confidence rubric
 │   │   │   └── engine.py          # Full intelligence coordinator
+│   │   ├── notifications/ # Real-time alerts and Telegram dispatch
+│   │   │   ├── telegram.py        # Telegram Bot API integration
+│   │   │   ├── formatter.py       # Rich HTML alert message formatter
+│   │   │   └── dispatcher.py      # Threshold filtering & duplicate prevention
 │   │   ├── processing/   # Extraction, classification, and deduplication
 │   │   │   ├── normalizer.py   # Text & URL normalization
 │   │   │   ├── filters.py      # Deal keyword & spam/scam detection

@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     TIMEZONE: str = "Africa/Lagos"
 
+    TELEGRAM_BOT_TOKEN: Optional[str] = Field(
+        default=None, description="Telegram Bot API Token for subscriber alerts"
+    )
+    TELEGRAM_CHAT_ID: Optional[str] = Field(
+        default=None, description="Default Telegram Chat ID for subscriber alerts"
+    )
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

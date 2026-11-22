@@ -280,6 +280,20 @@ export class PriyaApiClient {
       body: JSON.stringify(data)
     })
   }
+
+  sendTestNotification(customMessage?: string) {
+    return this.request<{ success: boolean; is_configured: boolean; detail: string }>(
+      '/notifications/test',
+      {
+        method: 'POST',
+        body: JSON.stringify({ custom_message: customMessage })
+      }
+    )
+  }
+
+  getNotifications(limit: number = 20) {
+    return this.request<any[]>(`/notifications?limit=${limit}`)
+  }
 }
 
 export const priyaApi = new PriyaApiClient()

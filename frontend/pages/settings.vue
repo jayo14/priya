@@ -17,15 +17,37 @@ const preferences = ref<UserPreferences>({
 const loading = ref(true)
 const saving = ref(false)
 const savedMessage = ref<string | null>(null)
+const testingBot = ref(false)
+const testResult = ref<{ success: boolean; detail: string } | null>(null)
+const recentNotifications = ref<any[]>([])
 
 const loadSettings = async () => {
   loading.value = true
   try {
-    preferences.value = await api.getSettings()
+    const [prefsRes, notifsRes] = await Promise.all([
+      api.getSettings(),
+      api.getNotifications(5)
+    ])
+    preferences.value = prefsRes
+    recentNotifications.value = notifsRes
   } catch (err) {
     console.error('Failed to load settings:', err)
   } finally {
     loading.value = false
+  }
+}
+
+const sendTestAlert = async () => {
+  testingBot.value = true
+  testResult.value = null
+  try {
+    const res = await api.sendTestNotification()
+    testResult.value = { success: res.success, detail: res.detail }
+    recentNotifications.value = await api.getNotifications(5)
+  } catch (err: any) {
+    testResult.value = { success: false, detail: err.message || 'Error communicating with server' }
+  } finally {
+    testingBot.value = false
   }
 }
 
@@ -151,6 +173,64 @@ onMounted(() => {
           <MaterialIcon name="save" :size="18" :class="saving ? 'animate-spin' : ''" />
           <span>{{ saving ? 'Saving Preferences...' : 'Save Preferences' }}</span>
         </Button>
+      </div>
+    </Card>
+
+    <!-- Telegram Bot Live Test Card -->
+    <Card class="p-6 bg-zinc-950/70 border-zinc-800 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <MaterialIcon name="send" :size="18" class="text-sky-400" />
+            <span>Telegram Channel Integration</span>
+          </h2>
+          <p class="text-xs text-zinc-400 mt-0.5">Test real-time alert delivery to your configured Telegram subscriber chat</p>
+        </div>
+
+        <Button
+          size="sm"
+          variant="secondary"
+          class="gap-1.5 text-xs"
+          :disabled="testingBot"
+          @click="sendTestAlert"
+        >
+          <MaterialIcon name="bolt" :size="15" :class="testingBot ? 'animate-spin' : 'text-amber-400'" />
+          <span>{{ testingBot ? 'Sending...' : 'Send Test Alert' }}</span>
+        </Button>
+      </div>
+
+      <!-- Test Status Response -->
+      <div
+        v-if="testResult"
+        class="p-3 rounded-lg text-xs flex items-center gap-2"
+        :class="testResult.success ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/30' : 'bg-amber-950/40 text-amber-300 border border-amber-500/30'"
+      >
+        <MaterialIcon :name="testResult.success ? 'check_circle' : 'info'" :size="16" />
+        <span>{{ testResult.detail }}</span>
+      </div>
+
+      <!-- Recent Notifications Log -->
+      <div v-if="recentNotifications.length > 0" class="space-y-2 pt-2">
+        <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Recent Dispatched Alerts</p>
+        <div class="space-y-1.5">
+          <div
+            v-for="notif in recentNotifications"
+            :key="notif.id"
+            class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80 text-xs"
+          >
+            <div class="flex items-center gap-2">
+              <span
+                class="h-2 w-2 rounded-full"
+                :class="notif.status === 'sent' ? 'bg-emerald-500' : notif.status === 'pending' ? 'bg-amber-500' : 'bg-red-500'"
+              />
+              <span class="font-medium text-zinc-200 capitalize">{{ notif.notification_type.replace('_', ' ') }}</span>
+              <span class="text-zinc-500">via {{ notif.channel }}</span>
+            </div>
+            <span class="text-[10px] text-zinc-500 font-mono">
+              {{ new Date(notif.created_at).toLocaleTimeString() }}
+            </span>
+          </div>
+        </div>
       </div>
     </Card>
   </div>
