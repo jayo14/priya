@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { usePriyaApi } from '~/composables/usePriyaApi'
+import { useTheme } from '~/composables/useTheme'
 
 const route = useRoute()
 const api = usePriyaApi()
+const { theme, toggleTheme } = useTheme()
 
 const health = ref<{ status: string; latency_ms: number } | null>(null)
 const isCollecting = ref(false)
@@ -51,7 +53,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 w-full border-b border-border/80 bg-background/80 backdrop-blur-md">
+  <header class="sticky top-0 z-40 w-full border-b border-border/80 bg-background/80 backdrop-blur-md transition-colors duration-200">
     <div class="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
       <!-- Logo -->
       <NuxtLink to="/" class="flex items-center gap-3 group">
@@ -60,15 +62,15 @@ onMounted(() => {
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-bold text-lg text-white tracking-tight">Priya</span>
-            <span class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Scout</span>
+            <span class="font-bold text-lg text-foreground tracking-tight">Priya</span>
+            <span class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Scout</span>
           </div>
-          <p class="text-[11px] text-zinc-400 font-medium">AI Subscription Deal Finder</p>
+          <p class="text-[11px] text-muted-foreground font-medium">AI Subscription Deal Finder</p>
         </div>
       </NuxtLink>
 
       <!-- Navigation Links -->
-      <nav class="hidden md:flex items-center gap-1 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800/80">
+      <nav class="hidden md:flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border">
         <NuxtLink
           v-for="link in navLinks"
           :key="link.to"
@@ -76,8 +78,8 @@ onMounted(() => {
           class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
           :class="[
             route.path === link.to
-              ? 'bg-zinc-800 text-emerald-400 font-semibold shadow-sm'
-              : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+              ? 'bg-background text-emerald-600 dark:text-emerald-400 font-semibold shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
           ]"
         >
           <MaterialIcon :name="link.icon" :size="16" />
@@ -86,17 +88,32 @@ onMounted(() => {
       </nav>
 
       <!-- Right Action Items -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <!-- Live System Status -->
         <div
           v-if="health"
-          class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border bg-zinc-900/60 border-zinc-800"
+          class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border bg-muted/50 border-border"
           :title="`PostgreSQL latency: ${health.latency_ms}ms`"
         >
           <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span class="text-zinc-300">Live</span>
-          <span class="text-zinc-500 text-[10px]">({{ health.latency_ms }}ms)</span>
+          <span class="text-foreground">Live</span>
+          <span class="text-muted-foreground text-[10px]">({{ health.latency_ms }}ms)</span>
         </div>
+
+        <!-- Theme Toggle Button -->
+        <Button
+          variant="outline"
+          size="icon"
+          class="rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground border-border"
+          :title="theme === 'dark' ? 'Switch to Light theme' : 'Switch to Dark theme'"
+          @click="toggleTheme"
+        >
+          <MaterialIcon
+            :name="theme === 'dark' ? 'light_mode' : 'dark_mode'"
+            :size="18"
+            class="transition-transform duration-200"
+          />
+        </Button>
 
         <!-- Trigger Instant Scout Button -->
         <Button

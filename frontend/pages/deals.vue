@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { Promotion, Provider } from '~/lib/api'
 import { usePriyaApi } from '~/composables/usePriyaApi'
+import ProviderLogo from '~/components/ProviderLogo.vue'
+import Card from '~/components/ui/Card.vue'
+import Input from '~/components/ui/Input.vue'
+import Button from '~/components/ui/Button.vue'
+import Badge from '~/components/ui/Badge.vue'
+import DealCard from '~/components/DealCard.vue'
+import DealDetailModal from '~/components/DealDetailModal.vue'
+import MaterialIcon from '~/components/MaterialIcon.vue'
 
 const route = useRoute()
 const api = usePriyaApi()
@@ -116,18 +124,18 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+        <h1 class="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <span>Subscription Deals Database</span>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium border border-emerald-500/20">
             {{ filteredDeals.length }} active
           </span>
         </h1>
-        <p class="text-xs text-zinc-400 mt-1">Verified promotions, free trial links, and student discounts across top AI providers</p>
+        <p class="text-xs text-muted-foreground mt-1">Verified promotions, free trial links, and student discounts across top AI providers</p>
       </div>
     </div>
 
-    <!-- Filter Bar Card -->
-    <Card class="p-4 bg-zinc-950/80 border-zinc-800 space-y-4">
+    <!-- Filter Bar Card (Strict shadcn Card & Theme-adaptive) -->
+    <Card class="p-4 bg-card border-border space-y-4 shadow-sm">
       <!-- Search input and provider buttons -->
       <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
         <!-- Search Query Input -->
@@ -135,12 +143,12 @@ onMounted(() => {
           <MaterialIcon
             name="search"
             :size="18"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <Input
             v-model="searchQuery"
             placeholder="Search by deal title, code, or provider..."
-            class="pl-9 h-10 text-xs"
+            class="pl-9 h-10 text-xs bg-background border-border text-foreground"
           />
         </div>
 
@@ -148,7 +156,7 @@ onMounted(() => {
         <div class="sm:col-span-4 flex items-center">
           <select
             v-model="selectedOfferType"
-            class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            class="h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
           >
             <option value="all">All Offer Types</option>
             <option value="free_trial">Free Trial</option>
@@ -163,7 +171,7 @@ onMounted(() => {
         <div class="sm:col-span-3 flex items-center">
           <select
             v-model.number="minConfidence"
-            class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            class="h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
           >
             <option :value="0">Any Confidence</option>
             <option :value="50">Likely Valid (50%+)</option>
@@ -173,41 +181,44 @@ onMounted(() => {
       </div>
 
       <!-- Quick Provider Selector & Nigeria Usability Toggle -->
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-800/80 text-xs">
-        <!-- Provider Filter Pills -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border text-xs">
+        <!-- Provider Filter Pills with Logos -->
         <div class="flex flex-wrap items-center gap-1.5">
-          <button
-            class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-            :class="selectedProviderId === null ? 'bg-emerald-500 text-zinc-950 font-semibold' : 'bg-zinc-900 text-zinc-400 hover:text-white'"
+          <Button
+            size="sm"
+            :variant="selectedProviderId === null ? 'default' : 'secondary'"
+            class="h-7 text-xs px-2.5 rounded-md"
             @click="selectedProviderId = null"
           >
             All Providers
-          </button>
+          </Button>
 
-          <button
+          <Button
             v-for="prov in providers"
             :key="prov.id"
-            class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-            :class="selectedProviderId === prov.id ? 'bg-emerald-500 text-zinc-950 font-semibold' : 'bg-zinc-900 text-zinc-400 hover:text-white'"
+            size="sm"
+            :variant="selectedProviderId === prov.id ? 'default' : 'secondary'"
+            class="h-7 text-xs px-2.5 rounded-md gap-1.5"
             @click="selectedProviderId = prov.id"
           >
-            {{ prov.name }}
-          </button>
+            <ProviderLogo :provider="prov.slug" :size="13" />
+            <span>{{ prov.name }}</span>
+          </Button>
         </div>
 
         <!-- Nigeria Available Toggle -->
-        <label class="flex items-center gap-2 cursor-pointer select-none">
+        <label class="flex items-center gap-2 cursor-pointer select-none text-foreground font-medium">
           <input
             v-model="nigeriaOnly"
             type="checkbox"
-            class="h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-emerald-500/20"
+            class="rounded border-border text-primary focus:ring-primary h-4 w-4 bg-background"
           />
-          <span class="text-zinc-300 font-medium">Nigeria Usable Only</span>
+          <span class="text-xs">Nigeria Compatible Only</span>
         </label>
       </div>
     </Card>
 
-    <!-- Deals Grid -->
+    <!-- Deals Results Grid -->
     <div v-if="filteredDeals.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <DealCard
         v-for="deal in filteredDeals"
@@ -219,30 +230,30 @@ onMounted(() => {
       />
     </div>
 
-    <!-- Empty State -->
-    <div v-else-if="!loading" class="text-center py-16 border border-dashed border-zinc-800 rounded-2xl p-8">
-      <MaterialIcon name="filter_alt_off" :size="36" class="text-zinc-600 mb-2" />
-      <p class="text-sm font-semibold text-zinc-300">No promotions match your current filters</p>
-      <p class="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
-        Try resetting your provider filter, widening the confidence score, or unchecking the Nigeria restriction.
+    <!-- Loading Skeleton -->
+    <div v-else-if="loading" class="text-center py-16 text-muted-foreground text-sm">
+      <MaterialIcon name="sync" :size="28" class="animate-spin mb-2 text-primary" />
+      <p>Loading subscription deals...</p>
+    </div>
+
+    <!-- Empty Filter Results -->
+    <div v-else class="text-center py-16 border border-dashed border-border rounded-2xl p-8 bg-card/40">
+      <MaterialIcon name="filter_list_off" :size="36" class="text-muted-foreground mb-2" />
+      <p class="text-sm font-semibold text-foreground">No deals match your filter criteria</p>
+      <p class="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+        Try clearing your search query or selecting "All Providers" to see more results.
       </p>
       <Button
         variant="secondary"
         size="sm"
         class="mt-4"
-        @click="
-          searchQuery = '';
-          selectedProviderId = null;
-          selectedOfferType = 'all';
-          nigeriaOnly = false;
-          minConfidence = 0;
-        "
+        @click="searchQuery = ''; selectedProviderId = null; selectedOfferType = 'all'; minConfidence = 0; nigeriaOnly = false"
       >
         Reset Filters
       </Button>
     </div>
 
-    <!-- Modal for Deal Details -->
+    <!-- Deal Detail Modal -->
     <DealDetailModal
       :deal="selectedDeal"
       :open="modalOpen"

@@ -2,6 +2,13 @@
 import { ref, onMounted } from 'vue'
 import type { DashboardStats, Promotion } from '~/lib/api'
 import { usePriyaApi } from '~/composables/usePriyaApi'
+import ProviderLogo from '~/components/ProviderLogo.vue'
+import Card from '~/components/ui/Card.vue'
+import Button from '~/components/ui/Button.vue'
+import Badge from '~/components/ui/Badge.vue'
+import DealCard from '~/components/DealCard.vue'
+import DealDetailModal from '~/components/DealDetailModal.vue'
+import MaterialIcon from '~/components/MaterialIcon.vue'
 
 const api = usePriyaApi()
 
@@ -61,17 +68,17 @@ onMounted(() => {
 
 <template>
   <div class="space-y-8">
-    <!-- Hero Banner -->
-    <div class="relative overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-950 p-6 sm:p-8">
+    <!-- Hero Banner (Theme-adaptive) -->
+    <div class="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-card via-card/70 to-background p-6 sm:p-8 shadow-sm">
       <div class="max-w-2xl">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-4">
           <MaterialIcon name="bolt" :size="15" />
           <span>Continuous Subscription Scouting</span>
         </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-          Find Free & Discounted <span class="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">AI Subscriptions</span>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight leading-tight">
+          Find Free & Discounted <span class="bg-gradient-to-r from-emerald-500 to-teal-400 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">AI Subscriptions</span>
         </h1>
-        <p class="mt-3 text-sm sm:text-base text-zinc-400 leading-relaxed">
+        <p class="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
           Priya monitors Telegram channels, Reddit discussions, and announcement feeds for Claude Pro, ChatGPT Plus, Grok, Gemini, Perplexity, and Cursor deals.
         </p>
 
@@ -93,80 +100,94 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 4 Main KPI Cards -->
+    <!-- 4 Main KPI Cards (Strict shadcn UI & Theme-adaptive) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card class="p-5 bg-zinc-950/60 border-zinc-800/80">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
+      <Card class="p-5 bg-card border-border hover:shadow-sm transition-shadow">
+        <div class="flex items-center justify-between text-muted-foreground mb-2">
           <span class="text-xs font-medium">Discovered Posts</span>
-          <MaterialIcon name="travel_explore" :size="20" class="text-zinc-500" />
+          <MaterialIcon name="travel_explore" :size="20" class="text-muted-foreground" />
         </div>
-        <div class="text-2xl sm:text-3xl font-extrabold text-white">
+        <div class="text-2xl sm:text-3xl font-extrabold text-foreground">
           {{ stats?.total_discovered_items ?? 0 }}
         </div>
-        <p class="text-[11px] text-zinc-500 mt-1">From Telegram, Reddit, RSS</p>
+        <p class="text-[11px] text-muted-foreground mt-1">From Telegram, Reddit, RSS</p>
       </Card>
 
-      <Card class="p-5 bg-zinc-950/60 border-zinc-800/80">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
+      <Card class="p-5 bg-card border-border hover:shadow-sm transition-shadow">
+        <div class="flex items-center justify-between text-muted-foreground mb-2">
           <span class="text-xs font-medium">Verified Deals</span>
-          <MaterialIcon name="verified" :size="20" class="text-emerald-400" />
+          <MaterialIcon name="verified" :size="20" class="text-emerald-500 dark:text-emerald-400" />
         </div>
-        <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400">
+        <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
           {{ stats?.verified_promotions ?? 0 }}
         </div>
-        <p class="text-[11px] text-emerald-500/80 mt-1">Official destination verified</p>
+        <p class="text-[11px] text-emerald-600/80 dark:text-emerald-500/80 mt-1">Official destination verified</p>
       </Card>
 
-      <Card class="p-5 bg-zinc-950/60 border-zinc-800/80">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
+      <Card class="p-5 bg-card border-border hover:shadow-sm transition-shadow">
+        <div class="flex items-center justify-between text-muted-foreground mb-2">
           <span class="text-xs font-medium">Expiring Soon</span>
-          <MaterialIcon name="timer" :size="20" class="text-amber-400" />
+          <MaterialIcon name="timer" :size="20" class="text-amber-500 dark:text-amber-400" />
         </div>
-        <div class="text-2xl sm:text-3xl font-extrabold text-amber-400">
+        <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400">
           {{ stats?.expiring_promotions ?? 0 }}
         </div>
-        <p class="text-[11px] text-zinc-500 mt-1">Ending within 48 hours</p>
+        <p class="text-[11px] text-muted-foreground mt-1">Ending within 48 hours</p>
       </Card>
 
-      <Card class="p-5 bg-zinc-950/60 border-zinc-800/80">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
+      <Card class="p-5 bg-card border-border hover:shadow-sm transition-shadow">
+        <div class="flex items-center justify-between text-muted-foreground mb-2">
           <span class="text-xs font-medium">Nigeria Usable</span>
-          <MaterialIcon name="public" :size="20" class="text-teal-400" />
+          <MaterialIcon name="public" :size="20" class="text-teal-500 dark:text-teal-400" />
         </div>
-        <div class="text-2xl sm:text-3xl font-extrabold text-teal-400">
+        <div class="text-2xl sm:text-3xl font-extrabold text-teal-600 dark:text-teal-400">
           {{ stats?.nigeria_eligible_promotions ?? 0 }}
         </div>
-        <p class="text-[11px] text-zinc-500 mt-1">Cards / Virtual USD supported</p>
+        <p class="text-[11px] text-muted-foreground mt-1">Cards / Virtual USD supported</p>
       </Card>
     </div>
 
-    <!-- Supported AI Providers Section -->
+    <!-- Tracked AI Providers Section with Official Brand Logos -->
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-bold text-white tracking-tight">Tracked AI Providers</h2>
-          <p class="text-xs text-zinc-400">Monitored subscription tiers across all major AI labs</p>
+          <h2 class="text-lg font-bold text-foreground tracking-tight">Tracked AI Providers</h2>
+          <p class="text-xs text-muted-foreground">Monitored subscription tiers across all major AI labs</p>
         </div>
-        <NuxtLink to="/deals" class="text-xs text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+        <NuxtLink to="/deals" class="text-xs text-primary hover:underline flex items-center gap-1 font-medium">
           View catalog
           <MaterialIcon name="arrow_forward" :size="14" />
         </NuxtLink>
       </div>
 
+      <!-- Providers Grid using shadcn Cards with Provider Logos -->
       <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <NuxtLink
           v-for="prov in stats?.providers"
           :key="prov.provider_id"
           :to="`/deals?provider=${prov.provider_id}`"
-          class="p-3 rounded-xl border border-zinc-800/80 bg-zinc-950/50 hover:bg-zinc-900 hover:border-zinc-700 transition-all text-center group cursor-pointer"
+          class="group block"
         >
-          <p class="font-semibold text-xs text-white group-hover:text-emerald-400 transition-colors truncate">
-            {{ prov.name }}
-          </p>
-          <div class="flex items-center justify-center gap-1.5 mt-1.5 text-[11px] text-zinc-400 font-medium">
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span>{{ prov.promotions_count }} deals</span>
-          </div>
+          <Card
+            hoverable
+            class="p-3.5 flex flex-col items-center justify-center text-center gap-2 h-full bg-card border-border transition-all duration-200 group-hover:border-primary/50 group-hover:shadow-md"
+          >
+            <!-- Platform Brand Logo Container -->
+            <div class="h-10 w-10 rounded-xl bg-muted/80 flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-inner">
+              <ProviderLogo :provider="prov.slug" :size="22" />
+            </div>
+
+            <!-- Provider Name & Deals Count -->
+            <div class="w-full">
+              <p class="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
+                {{ prov.name }}
+              </p>
+              <div class="flex items-center justify-center gap-1.5 mt-1 text-[11px] text-muted-foreground font-medium">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{{ prov.promotions_count }} {{ prov.promotions_count === 1 ? 'deal' : 'deals' }}</span>
+              </div>
+            </div>
+          </Card>
         </NuxtLink>
       </div>
     </div>
@@ -175,12 +196,12 @@ onMounted(() => {
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-bold text-white tracking-tight">Recent Opportunities</h2>
-          <p class="text-xs text-zinc-400">Latest discovered and verified promotional offers</p>
+          <h2 class="text-lg font-bold text-foreground tracking-tight">Recent Opportunities</h2>
+          <p class="text-xs text-muted-foreground">Latest discovered and verified promotional offers</p>
         </div>
 
         <NuxtLink to="/deals">
-          <Button variant="ghost" size="sm" class="gap-1 text-xs text-emerald-400">
+          <Button variant="ghost" size="sm" class="gap-1 text-xs text-primary">
             <span>Explore All Deals</span>
             <MaterialIcon name="arrow_forward" :size="14" />
           </Button>
@@ -198,15 +219,15 @@ onMounted(() => {
         />
       </div>
 
-      <div v-else-if="loading" class="text-center py-12 text-zinc-500 text-sm">
-        <MaterialIcon name="sync" :size="24" class="animate-spin mb-2" />
+      <div v-else-if="loading" class="text-center py-12 text-muted-foreground text-sm">
+        <MaterialIcon name="sync" :size="24" class="animate-spin mb-2 text-primary" />
         <p>Scouting subscription opportunities...</p>
       </div>
 
-      <div v-else class="text-center py-12 border border-dashed border-zinc-800 rounded-2xl p-8">
-        <MaterialIcon name="inventory_2" :size="32" class="text-zinc-600 mb-2" />
-        <p class="text-sm font-semibold text-zinc-300">No promotions discovered yet</p>
-        <p class="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+      <div v-else class="text-center py-12 border border-dashed border-border rounded-2xl p-8 bg-card/40">
+        <MaterialIcon name="inventory_2" :size="32" class="text-muted-foreground mb-2" />
+        <p class="text-sm font-semibold text-foreground">No promotions discovered yet</p>
+        <p class="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
           Click "Scout Deals" above to trigger multi-source discovery across configured Telegram and Reddit sources.
         </p>
       </div>

@@ -2,6 +2,12 @@
 import { ref, onMounted } from 'vue'
 import type { Promotion, Provider, WatchlistSummary } from '~/lib/api'
 import { usePriyaApi } from '~/composables/usePriyaApi'
+import ProviderLogo from '~/components/ProviderLogo.vue'
+import Card from '~/components/ui/Card.vue'
+import Button from '~/components/ui/Button.vue'
+import DealCard from '~/components/DealCard.vue'
+import DealDetailModal from '~/components/DealDetailModal.vue'
+import MaterialIcon from '~/components/MaterialIcon.vue'
 
 const api = usePriyaApi()
 
@@ -64,44 +70,53 @@ onMounted(() => {
 <template>
   <div class="space-y-8">
     <div>
-      <h1 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-        <MaterialIcon name="bookmark" :size="24" class="text-emerald-400" />
+      <h1 class="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+        <MaterialIcon name="bookmark" :size="24" class="text-primary" />
         <span>Your Watchlist & Saved Deals</span>
       </h1>
-      <p class="text-xs text-zinc-400 mt-1">Keep track of priority AI providers and bookmarked subscription promotions</p>
+      <p class="text-xs text-muted-foreground mt-1">Keep track of priority AI providers and bookmarked subscription promotions</p>
     </div>
 
-    <!-- Watched AI Providers Section -->
+    <!-- Watched AI Providers Section (Strict shadcn Card & Theme-adaptive) -->
     <div class="space-y-3">
-      <h2 class="text-sm font-bold text-zinc-200 uppercase tracking-wider">Watched Providers</h2>
+      <h2 class="text-xs font-bold text-foreground uppercase tracking-wider">Watched Providers</h2>
       <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-        <div
+        <Card
           v-for="prov in providers"
           :key="prov.id"
-          class="p-3 rounded-xl border flex flex-col justify-between transition-all"
-          :class="watchlistSummary?.provider_ids.includes(prov.id) ? 'bg-emerald-950/20 border-emerald-500/40' : 'bg-zinc-950/60 border-zinc-800'"
+          class="p-3.5 flex flex-col justify-between transition-all bg-card border-border"
+          :class="watchlistSummary?.provider_ids.includes(prov.id) ? 'border-primary/50 shadow-sm' : ''"
         >
-          <div>
-            <p class="font-semibold text-xs text-white truncate">{{ prov.name }}</p>
-            <p class="text-[11px] text-zinc-500 mt-0.5">{{ prov.promotions_count }} active deals</p>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="h-7 w-7 rounded-lg bg-muted/80 flex items-center justify-center shrink-0">
+              <ProviderLogo :provider="prov.slug" :size="16" />
+            </div>
+            <div class="overflow-hidden">
+              <p class="font-semibold text-xs text-foreground truncate">{{ prov.name }}</p>
+              <p class="text-[10px] text-muted-foreground">{{ prov.promotions_count }} active</p>
+            </div>
           </div>
 
-          <button
-            class="mt-3 flex items-center justify-center gap-1 text-[11px] font-medium py-1 px-2 rounded-md transition-colors"
-            :class="watchlistSummary?.provider_ids.includes(prov.id) ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800'"
+          <Button
+            size="sm"
+            :variant="watchlistSummary?.provider_ids.includes(prov.id) ? 'default' : 'secondary'"
+            class="mt-2 h-7 text-[11px] font-medium w-full gap-1"
             @click="toggleWatchProvider(prov.id)"
           >
-            <MaterialIcon :name="watchlistSummary?.provider_ids.includes(prov.id) ? 'visibility' : 'visibility_off'" :size="13" />
+            <MaterialIcon
+              :name="watchlistSummary?.provider_ids.includes(prov.id) ? 'visibility' : 'visibility_off'"
+              :size="13"
+            />
             <span>{{ watchlistSummary?.provider_ids.includes(prov.id) ? 'Watching' : 'Watch' }}</span>
-          </button>
-        </div>
+          </Button>
+        </Card>
       </div>
     </div>
 
     <!-- Bookmarked Deals Grid -->
     <div class="space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold text-zinc-200 uppercase tracking-wider">
+        <h2 class="text-xs font-bold text-foreground uppercase tracking-wider">
           Bookmarked Promotions ({{ bookmarkedDeals.length }})
         </h2>
       </div>
@@ -117,10 +132,10 @@ onMounted(() => {
         />
       </div>
 
-      <div v-else-if="!loading" class="text-center py-16 border border-dashed border-zinc-800 rounded-2xl p-8">
-        <MaterialIcon name="bookmark_border" :size="36" class="text-zinc-600 mb-2" />
-        <p class="text-sm font-semibold text-zinc-300">Your watchlist is currently empty</p>
-        <p class="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+      <div v-else-if="!loading" class="text-center py-16 border border-dashed border-border rounded-2xl p-8 bg-card/40">
+        <MaterialIcon name="bookmark_border" :size="36" class="text-muted-foreground mb-2" />
+        <p class="text-sm font-semibold text-foreground">Your watchlist is currently empty</p>
+        <p class="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
           Click the bookmark icon on any promotional deal card in the Deals directory to save it here for quick access.
         </p>
         <NuxtLink to="/deals">
