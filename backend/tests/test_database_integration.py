@@ -123,9 +123,9 @@ def test_discovered_item_persistence_and_duplicate_rejection(db_session: Session
     """Verify discovered item persistence and rejection of duplicate external_id for same source."""
     source = SourceRepository.create(
         db=db_session,
-        name="Reddit AI Deals",
+        name="Reddit AI Deals Test",
         source_type=SourceType.REDDIT,
-        identifier="r/ChatGPT",
+        identifier="r/ChatGPT_TestDeals",
     )
 
     item = DiscoveryRepository.create_item(
@@ -202,7 +202,7 @@ def test_promotion_multiple_discoveries_corroboration(db_session: Session):
         db=db_session,
         name="Reddit Community B",
         source_type=SourceType.REDDIT,
-        identifier="r/ClaudeAI",
+        identifier="r/ClaudeAI_TestCorroboration",
     )
 
     item1 = DiscoveryRepository.create_item(
