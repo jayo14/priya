@@ -152,9 +152,63 @@ make backend-dev
 make frontend-dev
 ```
 
-- **Frontend App**: [http://localhost:3000](http://localhost:3000)
+- **Frontend Dashboard**: [http://127.0.0.1:3000](http://127.0.0.1:3000)
+- **Deals Feed**: [http://127.0.0.1:3000/deals](http://127.0.0.1:3000/deals)
+- **Watchlist**: [http://127.0.0.1:3000/watchlist](http://127.0.0.1:3000/watchlist)
+- **Sources**: [http://127.0.0.1:3000/sources](http://127.0.0.1:3000/sources)
+- **Settings**: [http://127.0.0.1:3000/settings](http://127.0.0.1:3000/settings)
 - **Backend API Docs**: [http://127.0.0.1:8000/api/v1/docs](http://127.0.0.1:8000/api/v1/docs)
 - **Health Endpoint**: [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health)
+
+---
+
+## How to See Live Logs as Priya Searches & Scrapes
+
+You have three distinct ways to view real scraping activity, depending on how you want to monitor it:
+
+### Method A: Real-Time Terminal Follow (Live Stream)
+
+Open a terminal in the project directory to see every network request, source checked, and extraction in real time:
+
+```bash
+# Watch the live backend server activity
+tail -f backend.log
+```
+
+When you trigger a run with `./scripts/scout.sh run` or through cron, you will see real-time output like:
+
+```text
+[INFO] Running scraper for source: Google AI Blog Feed (rss)
+[INFO] HTTP Request: GET https://blog.google/technology/ai/rss/ "HTTP/1.1 200 OK"
+[INFO] Source 'Google AI Blog Feed': 20 collected, 0 newly persisted
+[INFO] Running scraper for source: Anthropic Newsroom (website)
+[INFO] HTTP Request: GET https://www.anthropic.com/news "HTTP/1.1 200 OK"
+[INFO] Evaluated authenticity and Nigerian payment card eligibility
+```
+
+---
+
+### Method B: Directly in the Web Dashboard UI
+
+You can see what the engine discovered and processed directly inside your browser:
+
+1. Navigate to the **Dashboard**: [http://127.0.0.1:3000](http://127.0.0.1:3000)
+2. Scroll to the **"Discovery Stream & Scraping Logs"** card.
+3. It displays all real items scraped from your live sources with their timestamp, source type badge (`RSS`, `WEBSITE`, etc.), and whether they were classified as an active promotion or filtered out as non-promotional news (`IRRELEVANT`).
+
+---
+
+### Method C: Using the Priya CLI Inspection Tools
+
+You can inspect discovery statistics and logs directly from the command line:
+
+```bash
+# 1. View high-level metrics across all sources
+./scripts/scout.sh stats
+
+# 2. View recent discovered items and their classification status via API
+curl -s http://127.0.0.1:8000/api/v1/dashboard/activity | python3 -m json.tool
+```
 
 ---
 

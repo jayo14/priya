@@ -57,6 +57,15 @@ export interface Provider {
   plans: ProviderPlan[]
 }
 
+export interface ActivityItem {
+  id: number
+  source_name: string
+  source_type: string
+  title?: string
+  processing_status: string
+  discovered_at: string
+}
+
 export interface DashboardStats {
   total_discovered_items: number
   total_promotions: number
@@ -185,8 +194,8 @@ export class PriyaApiClient {
     return this.request<DashboardStats>('/dashboard/stats')
   }
 
-  getDashboardActivity(limit: number = 10) {
-    return this.request<any[]>(`/dashboard/activity?limit=${limit}`)
+  getDashboardActivity(limit: number = 20) {
+    return this.request<ActivityItem[]>(`/dashboard/activity?limit=${limit}`)
   }
 
   getPromotions(params: {

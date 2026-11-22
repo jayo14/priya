@@ -61,7 +61,7 @@ async def run_discovery_and_pipeline(force_all_sources: bool = False) -> dict:
         # 3. Network verification for unverified promotions
         unverified_promos = (
             db.query(Promotion)
-            .filter(Promotion.status.in_([PromotionStatus.PENDING, PromotionStatus.UNVERIFIED]))
+            .filter(Promotion.status == PromotionStatus.UNVERIFIED)
             .all()
         )
         for promo in unverified_promos:
