@@ -20,9 +20,12 @@ build/
 .mypy_cache/
 .ruff_cache/
 
-# Node / Next.js
+# Node / Nuxt / Frontend
 node_modules/
 .next/
+.nuxt/
+.output/
+dist/
 out/
 npm-debug.log*
 yarn-debug.log*

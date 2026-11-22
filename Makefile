@@ -4,7 +4,7 @@ help:
 	@echo "Priya Development and Operations Commands:"
 	@echo "  make install         Install all backend and frontend dependencies"
 	@echo "  make backend-dev     Start FastAPI backend in development mode"
-	@echo "  make frontend-dev    Start Next.js frontend in development mode"
+	@echo "  make frontend-dev    Start Nuxt frontend in development mode"
 	@echo "  make test-backend    Run backend pytest integration test suite"
 	@echo "  make lint-backend    Run Ruff linter on backend"
 	@echo "  make format-backend  Run Ruff code formatter on backend"
