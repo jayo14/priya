@@ -27,8 +27,8 @@ const loadData = async () => {
   try {
     const [statsRes, promosRes, activityRes, wlRes] = await Promise.all([
       api.getDashboardStats(),
-      api.getPromotions({ limit: 6 }),
-      api.getDashboardActivity(15),
+      api.getPromotions({ limit: 12 }),
+      api.getDashboardActivity(50),
       api.getWatchlist()
     ])
     stats.value = statsRes

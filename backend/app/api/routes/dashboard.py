@@ -176,7 +176,7 @@ def get_dashboard_stats(db: Session = DbSession):
 
 
 @router.get("/activity", response_model=List[ActivityItemResponse])
-def get_dashboard_activity(limit: int = 10, db: Session = DbSession):
+def get_dashboard_activity(limit: int = 50, db: Session = DbSession):
     """Retrieve latest ingestion and discovery activity feed."""
     items = list(
         db.execute(
