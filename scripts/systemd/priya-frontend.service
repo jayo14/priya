@@ -1,0 +1,21 @@
+[Unit]
+Description=Priya Nuxt 3 Frontend Service
+After=network.target priya-backend.service
+
+[Service]
+Type=simple
+User=%USER%
+WorkingDirectory=%WORKDIR%/frontend
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+Environment=NODE_ENV=production
+EnvironmentFile=%WORKDIR%/.env
+ExecStart=/usr/bin/node %WORKDIR%/frontend/.output/server/index.mjs
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=priya-frontend
+
+[Install]
+WantedBy=multi-user.target

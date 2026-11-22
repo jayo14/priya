@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic 30-minute timer for Priya deal scout runner
+Requires=priya-scout.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

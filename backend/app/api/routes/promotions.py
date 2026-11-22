@@ -191,7 +191,9 @@ def list_promotions(
     # Build response objects with relationships and Nigerian filter
     result: List[PromotionResponse] = []
     for promo in promotions:
-        has_ng = "NG" in promo.eligible_countries or "GLOBAL" in promo.eligible_countries
+        upper_el = [c.upper() for c in promo.eligible_countries]
+        upper_ex = [c.upper() for c in promo.excluded_countries]
+        has_ng = ("NG" not in upper_ex) and ("NG" in upper_el or "GLOBAL" in upper_el or not upper_el)
         if nigeria_eligible is not None and has_ng != nigeria_eligible:
             continue
 

@@ -1,0 +1,19 @@
+[Unit]
+Description=Priya Fast-API Backend Service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=%USER%
+WorkingDirectory=%WORKDIR%/backend
+Environment="PATH=%WORKDIR%/backend/.venv/bin:/usr/local/bin:/usr/bin"
+EnvironmentFile=%WORKDIR%/.env
+ExecStart=%WORKDIR%/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2 --access-log
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=priya-backend
+
+[Install]
+WantedBy=multi-user.target

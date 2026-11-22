@@ -25,14 +25,16 @@ When Priya finds an offer, she:
 
 ---
 
-## Current Status: Phase 7 Completed (Real-Time Notifications & Telegram Bot Integration)
+## Current Status: Phase 8 Completed (Fully Built & Verified)
 
 - [x] **Phase 1: Foundation & Scaffolding**: Modular monolith architecture, FastAPI backend, SQLAlchemy 2.x, Alembic, PostgreSQL 16 schema, 10 domain models, idempotent seeder, integration test suite.
 - [x] **Phase 2: Discovery Infrastructure**: Multi-source discovery engine supporting Telegram public channels, Reddit communities & search, RSS/Atom newsroom feeds, and public web announcement scrapers with scheduling.
 - [x] **Phase 3: Extraction & Classification**: Text/URL normalizer, promotional keyword & spam filtering, deterministic AI provider/plan/offer-type classifier, parameter extractor (codes, duration, discounts, country eligibility), and multi-source corroboration deduplicator.
 - [x] **Phase 4: Promotion Intelligence**: Safe URL inspection with SSRF defense, redirect resolution, brand impersonation detection, authenticity heuristics, dedicated Nigerian banking and payment card feasibility assessment, transparent 100-point confidence scoring rubric, and verification audit trails.
-- [x] **Phase 5: Dashboard Analytics & Watchlist**: Dashboard statistics & activity feed, provider catalogue API, user watchlist endpoints, app settings API, and Nuxt 3 / Vue 3 frontend built with shadcn-vue tokens and Material Symbols Rounded icons.
+- [x] **Phase 5: Dashboard Analytics & Watchlist**: Dashboard statistics & activity feed, provider catalogue API, user watchlist endpoints, app settings API.
+- [x] **Phase 6: Modern Nuxt 3 Frontend**: Nuxt 3 (SSR + Nitro), Vue 3 Composition API, Tailwind CSS, shadcn-vue tokens (`radix-vue`, `cva`, `tailwind-merge`), and Google Material Symbols Rounded icons.
 - [x] **Phase 7: Real-Time Alerts & Telegram Bot Integration**: Direct Telegram Bot API client, structured HTML alert formatting with Nigerian card guidance, automated duplicate alert prevention in PostgreSQL, expiring deal scanning, test notification API, and settings UI test trigger.
+- [x] **Phase 8: Production Hardening, E2E Verification & Operation Tooling**: End-to-end integration test (`test_e2e_pipeline.py`), CLI scout runner (`app.cli` / `scripts/scout.sh`), systemd service templates, startup scripts, and Linux production deployment documentation.
 
 ---
 
@@ -41,7 +43,7 @@ When Priya finds an offer, she:
 - **Frontend**: Nuxt 3, Vue 3 (Composition API), Tailwind CSS, shadcn-vue design system (`radix-vue`, `cva`, `tailwind-merge`), Google Material Symbols (New) Rounded icons.
 - **Backend**: FastAPI, Python 3.12+, Pydantic v2, Pydantic Settings, SQLAlchemy 2.x, Psycopg 3, BeautifulSoup4, Feedparser, Uvicorn.
 - **Database**: PostgreSQL 16 with Alembic database migrations.
-- **Architecture**: Modular monolith with decoupled Nuxt frontend, FastAPI backend, discovery adapters, intelligence engine, and processing pipeline.
+- **Architecture**: Modular monolith with decoupled Nuxt frontend, FastAPI backend, discovery adapters, intelligence engine, processing pipeline, and direct Telegram alert dispatcher. Zero external AI/LLM dependencies, zero Redis, zero Celery, zero mandatory Docker.
 
 ---
 
@@ -62,7 +64,7 @@ priya/
 │
 ├── backend/              # FastAPI Python backend
 │   ├── app/
-│   │   ├── api/          # Route definitions (/health, /sources, /promotions, /discovery, /processing)
+│   │   ├── api/          # Route definitions (health, sources, promotions, dashboard, providers, watchlist, notifications, settings)
 │   │   ├── core/         # Typed settings and structured logging
 │   │   ├── database/     # SQLAlchemy models, repositories, and seed logic
 │   │   ├── discovery/    # Multi-source collector adapters (Telegram, Reddit, RSS, Web)
@@ -84,9 +86,10 @@ priya/
 │   │   │   ├── extractor.py    # Structured parameters (codes, discounts, duration, countries)
 │   │   │   ├── deduplicator.py # Source corroboration & canonical promotion matching
 │   │   │   └── pipeline.py     # End-to-end processing pipeline
+│   │   ├── cli.py        # Standalone scout CLI runner
 │   │   └── main.py       # Application entry point & CORS
 │   ├── migrations/       # Alembic versioned migration scripts
-│   ├── tests/            # Pytest test suite against PostgreSQL (28 tests)
+│   ├── tests/            # Pytest test suite against PostgreSQL (50 tests)
 │   └── pyproject.toml    # Python dependencies and build config
 │
 ├── docs/                 # Engineering documentation
@@ -95,10 +98,17 @@ priya/
 │   ├── discovery.md      # Multi-source discovery engine design & operation
 │   ├── processing.md     # Extraction, classification, and corroboration pipeline
 │   ├── intelligence.md   # Link verification, Nigeria eligibility, and confidence scoring
-│   ├── development.md    # Local development setup and workflows
-│   └── deployment.md     # Production deployment on Linux without Docker
+│   ├── notifications.md  # Real-time alerts, Telegram formatting, and duplicate prevention
+│   ├── frontend.md       # Nuxt 3 UI structure, shadcn-vue tokens, Material Symbols
+│   └── production.md     # Production deployment on Linux without Docker
 │
-├── scripts/              # Helper scripts for database and health checking
+├── scripts/              # Helper scripts for database, health checking, and systemd
+│   ├── systemd/          # Systemd unit files (backend, frontend, scout service & timer)
+│   ├── scout.sh          # CLI scout runner wrapper
+│   ├── start-all.sh      # One-command production / local launcher
+│   ├── stop-all.sh       # Clean shutdown script
+│   ├── check-health.sh   # Health verification script
+│   └── db.sh             # Local PostgreSQL management helper
 ├── Makefile              # Developer task runner
 ├── .env.example          # Environment configuration template
 └── README.md
@@ -120,7 +130,7 @@ cp .env.example .env
 make install
 ```
 
-### 3. Start Database, Apply Migrations & Seed Catalogue
+### 3. Start Database, Apply Migrations & Seed Baseline Data
 
 ```bash
 make db-start
@@ -130,9 +140,11 @@ make db-seed
 
 ### 4. Run Applications
 
-In separate terminal tabs:
-
 ```bash
+# Option A: Start all components (database, backend, frontend) together:
+./scripts/start-all.sh
+
+# Option B: Run in separate development terminals:
 # Terminal 1: Backend API
 make backend-dev
 
@@ -146,13 +158,33 @@ make frontend-dev
 
 ---
 
+## CLI Scout Runner
+
+Priya includes a standalone runner for scheduled execution via cron or systemd without requiring Celery or Redis:
+
+```bash
+# Run full scout across all sources (discovery -> processing -> intelligence -> alerts)
+./scripts/scout.sh run
+
+# Force scrape all sources regardless of collection interval
+./scripts/scout.sh run --force
+
+# Check and alert on deals expiring in < 48 hours
+./scripts/scout.sh expiring
+
+# Display engine metrics
+./scripts/scout.sh stats
+```
+
+---
+
 ## API Summary
 
 | Category | Method | Endpoint | Description |
 |---|---|---|---|
 | **Health** | `GET` | `/api/v1/health` | App & PostgreSQL status with latency. |
-| **Sources** | `GET` | `/api/v1/sources` | List registered sources. |
-| **Sources** | `POST` | `/api/v1/sources` | Register new source. |
+| **Sources** | `GET` | `/api/v1/sources` | List registered discovery sources. |
+| **Sources** | `POST` | `/api/v1/sources` | Register a new source to monitor. |
 | **Sources** | `POST` | `/api/v1/sources/{id}/collect` | Trigger immediate collection for source. |
 | **Discovery**| `POST` | `/api/v1/discovery/collect-all` | Run discovery across all active sources. |
 | **Discovery**| `GET` | `/api/v1/discovery/items` | Query raw discovered items. |
@@ -168,6 +200,10 @@ make frontend-dev
 | **Providers**   | `GET` | `/api/v1/providers` | List AI providers with plans and active deal counts. |
 | **Watchlist**   | `GET` | `/api/v1/watchlist` | Get saved promotions and watched provider IDs. |
 | **Watchlist**   | `POST` | `/api/v1/watchlist/promotions/{id}` | Toggle bookmark status of a promotion. |
+| **Watchlist**   | `POST` | `/api/v1/watchlist/providers/{id}` | Toggle watched status of an AI provider. |
+| **Notifications** | `GET` | `/api/v1/notifications` | List dispatched alert history with delivery status. |
+| **Notifications** | `POST` | `/api/v1/notifications/test` | Send test Telegram alert message. |
+| **Notifications** | `POST` | `/api/v1/notifications/dispatch-expiring` | Scan and dispatch expiring deals. |
 | **Settings**    | `GET` | `/api/v1/settings` | Get alert thresholds, Nigeria filter, and polling frequency. |
 | **Settings**    | `PATCH` | `/api/v1/settings` | Update user discovery and notification preferences. |
 
@@ -180,7 +216,7 @@ make frontend-dev
 make check
 ```
 
-- **Backend tests**: `make test-backend` (28 integration tests against PostgreSQL)
+- **Backend tests**: `make test-backend` (50 integration & E2E tests against PostgreSQL)
 - **Backend linting**: `make lint-backend`
 - **Frontend linting**: `make lint-frontend`
 - **Frontend build**: `make build-frontend`

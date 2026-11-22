@@ -1,0 +1,14 @@
+[Unit]
+Description=Priya Scheduled Promotion Discovery and Pipeline Runner
+After=network.target postgresql.service priya-backend.service
+
+[Service]
+Type=oneshot
+User=%USER%
+WorkingDirectory=%WORKDIR%/backend
+Environment="PATH=%WORKDIR%/backend/.venv/bin:/usr/local/bin:/usr/bin"
+EnvironmentFile=%WORKDIR%/.env
+ExecStart=%WORKDIR%/backend/.venv/bin/python -m app.cli run
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=priya-scout
