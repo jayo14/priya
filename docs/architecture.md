@@ -58,10 +58,18 @@ PostgreSQL 16 serves as the single source of truth for:
 - Promotion links, historical verification checks, and eligibility restrictions.
 - Notification dispatch history and application configuration settings.
 
-## 5. Integration of Future Collectors (Phase 2+)
+## 5. Multi-Source Discovery Engine (Phase 2)
 
-Future collectors (Telegram client, Reddit reader, website crawlers) will integrate cleanly into the modular monolith:
-1. **Source Discovery**: Collectors read active sources from `sources` using `SourceRepository`.
-2. **Ingestion**: Raw content is stored in `discovered_items` with external IDs and content hashes to guarantee duplicate prevention.
-3. **Corroboration & Promotion Extraction**: Processing tasks extract promotion details, match them against canonical `providers` and `plans`, and create `promotion_discoveries` associations. Multiple discoveries corroborate a single canonical promotion.
-4. **Verification & Eligibility Engine**: Automated verification workers run checks (URL accessibility, domain verification, country eligibility) and record history in `verification_checks`.
+The discovery engine collects raw promotional content without premature filtering or classification:
+1. **Source Discovery**: Active sources are queried from `sources` using `SourceRepository`.
+2. **Collector Adapters**:
+   - `TelegramCollector`: Uses public preview HTML (`https://t.me/s/{channel}`) to extract channel messages, links, and views without authentication.
+   - `RedditCollector`: Uses public JSON endpoints (`/r/{subreddit}/new.json`) with an automatic fallback to public RSS feeds on 429 throttling.
+   - `RssCollector`: Parses RSS and Atom feeds from official company blogs and changelogs.
+   - `WebPageCollector`: Scrapes public announcement pages, strips noise tags, and collects outbound links.
+3. **Ingestion & Deduplication**:
+   - Source-specific external IDs prevent re-ingesting identical posts.
+   - SHA-256 content hashes detect identical content across different runs.
+   - Items are persisted in `discovered_items` with status `pending`.
+4. **Source State Tracking**: Updates `last_collected_at`, `last_successful_collection_at`, `last_error_at`, and `last_error_message` for full operational visibility.
+5. **Collection Scheduling**: Lightweight asyncio task runner (`DiscoveryScheduler`) executes collections at configured intervals (`collection_interval_seconds`) without Celery or Redis.
