@@ -47,7 +47,7 @@ async def run_discovery_and_pipeline(force_all_sources: bool = False) -> dict:
                 logger.info(f"Running scraper for source: {source.name} ({source.source_type.value})")
                 stats = await orchestrator.collect_source(db, source)
                 results["sources_scraped"] += 1
-                results["new_items_discovered"] += stats.new_items_saved
+                results["new_items_discovered"] += len(stats.items)
 
         # 2. Processing & Extraction phase
         pipeline = ProcessingPipeline()
