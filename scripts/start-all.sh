@@ -50,3 +50,7 @@ echo "=== Priya is Live! ==="
 echo "Frontend: http://127.0.0.1:3000"
 echo "Backend API: http://127.0.0.1:8000/api/v1"
 echo "API Docs: http://127.0.0.1:8000/api/v1/docs"
+echo ""
+echo "=== Following Backend Logs (Press Ctrl+C anytime to stop viewing logs - services remain running) ==="
+trap 'echo -e "\nDetached from logs. Backend and frontend are still running in the background. Stop anytime with ./scripts/stop-all.sh"; exit 0' INT TERM
+tail -f "$ROOT_DIR/backend.log"
