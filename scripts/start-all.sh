@@ -13,18 +13,10 @@ if [ -f "$SCRIPT_DIR/db.sh" ]; then
     "$SCRIPT_DIR/db.sh" start
 fi
 
-# 2. Run Database Migrations & Seeds
+# 2. Run Database Migrations
 echo "Running database migrations..."
 cd "$ROOT_DIR/backend"
 "$ROOT_DIR/backend/.venv/bin/alembic" upgrade head
-
-echo "Ensuring initial providers and sources are seeded..."
-PYTHONPATH="$ROOT_DIR/backend" "$ROOT_DIR/backend/.venv/bin/python" -c "
-from app.database.session import SessionLocal
-from app.database.seed import seed_database
-with SessionLocal() as db:
-    seed_database(db)
-"
 
 # 3. Start Backend in Background
 echo "Starting Priya FastAPI Backend on http://127.0.0.1:8000..."
