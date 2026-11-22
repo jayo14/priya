@@ -25,11 +25,12 @@ When Priya finds an offer, she:
 
 ---
 
-## Current Status: Phase 3 Completed (Structured Promotion Discovery)
+## Current Status: Phase 4 Completed (Promotion Intelligence & Verification)
 
 - [x] **Phase 1: Foundation & Scaffolding**: Modular monolith architecture, Next.js 15 App Router frontend, FastAPI backend, SQLAlchemy 2.x, Alembic, PostgreSQL 16 schema, 10 domain models, idempotent seeder, integration test suite.
 - [x] **Phase 2: Discovery Infrastructure**: Multi-source discovery engine supporting Telegram public channels, Reddit communities & search, RSS/Atom newsroom feeds, and public web announcement scrapers with scheduling.
 - [x] **Phase 3: Extraction & Classification**: Text/URL normalizer, promotional keyword & spam filtering, deterministic AI provider/plan/offer-type classifier, parameter extractor (codes, duration, discounts, country eligibility), and multi-source corroboration deduplicator.
+- [x] **Phase 4: Promotion Intelligence**: Safe URL inspection with SSRF defense, redirect resolution, brand impersonation detection, authenticity heuristics, dedicated Nigerian banking and payment card feasibility assessment, transparent 100-point confidence scoring rubric, and verification audit trails.
 
 ---
 
@@ -59,6 +60,13 @@ priya/
 │   │   ├── core/         # Typed settings and structured logging
 │   │   ├── database/     # SQLAlchemy models, repositories, and seed logic
 │   │   ├── discovery/    # Multi-source collector adapters (Telegram, Reddit, RSS, Web)
+│   │   ├── intelligence/ # Promotion Intelligence & Verification Engine
+│   │   │   ├── link_validator.py  # Safe URL inspection & SSRF prevention
+│   │   │   ├── authenticity.py    # Authenticity & scam pattern analysis
+│   │   │   ├── eligibility.py     # Nigerian banking & regional eligibility
+│   │   │   ├── expiry.py          # Expiration tracking & urgency
+│   │   │   ├── scoring.py         # 100-point transparent confidence rubric
+│   │   │   └── engine.py          # Full intelligence coordinator
 │   │   ├── processing/   # Extraction, classification, and deduplication
 │   │   │   ├── normalizer.py   # Text & URL normalization
 │   │   │   ├── filters.py      # Deal keyword & spam/scam detection
@@ -76,6 +84,7 @@ priya/
 │   ├── database.md       # Complete database schema, tables, and constraints
 │   ├── discovery.md      # Multi-source discovery engine design & operation
 │   ├── processing.md     # Extraction, classification, and corroboration pipeline
+│   ├── intelligence.md   # Link verification, Nigeria eligibility, and confidence scoring
 │   ├── development.md    # Local development setup and workflows
 │   └── deployment.md     # Production deployment on Linux without Docker
 │
@@ -139,8 +148,11 @@ make frontend-dev
 | **Discovery**| `GET` | `/api/v1/discovery/items` | Query raw discovered items. |
 | **Pipeline** | `POST` | `/api/v1/processing/run` | Execute extraction pipeline on pending items. |
 | **Pipeline** | `GET` | `/api/v1/processing/stats` | Pipeline status counts (pending, processed, etc.). |
-| **Promotions**| `GET` | `/api/v1/promotions` | List canonical promotions (filter by provider, offer type, `nigeria_eligible`). |
+| **Promotions**| `GET` | `/api/v1/promotions` | List canonical promotions (filter by provider, offer type, `min_confidence`, `nigeria_eligible`). |
 | **Promotions**| `GET` | `/api/v1/promotions/{id}` | Get promotion details with corroborations & links. |
+| **Intelligence**| `POST` | `/api/v1/promotions/{id}/verify` | Run verification checks and update confidence score. |
+| **Intelligence**| `GET` | `/api/v1/promotions/{id}/eligibility` | Get detailed Nigerian banking & regional eligibility breakdown. |
+| **Intelligence**| `GET` | `/api/v1/promotions/{id}/verification-checks` | List timestamped verification check audit logs. |
 
 ---
 
