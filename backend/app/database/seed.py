@@ -6,7 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.logging import setup_logging
+from app.database.models.enums import SourceType
 from app.database.models.provider import Plan, Provider
+from app.database.models.source import Source
 from app.database.session import SessionLocal
 
 logger = setup_logging()
@@ -149,6 +151,97 @@ SEED_CATALOGUE: List[Dict[str, Any]] = [
     },
 ]
 
+CURATED_SOURCES: List[Dict[str, Any]] = [
+    {
+        "name": "Telegram: Claude & AI Promos",
+        "source_type": "telegram",
+        "identifier": "@ai_promos_daily",
+        "url": "https://t.me/s/ai_promos_daily",
+        "description": "Public Telegram channel sharing AI tool discounts and trials.",
+        "collection_interval_seconds": 180,
+    },
+    {
+        "name": "Telegram: ChatGPT Deals & Codes",
+        "source_type": "telegram",
+        "identifier": "@ChatGPT_Promocodes",
+        "url": "https://t.me/s/ChatGPT_Promocodes",
+        "description": "Public Telegram community sharing ChatGPT discount codes.",
+        "collection_interval_seconds": 180,
+    },
+    {
+        "name": "Reddit: r/ClaudeAI",
+        "source_type": "reddit",
+        "identifier": "r/ClaudeAI",
+        "url": "https://www.reddit.com/r/ClaudeAI/",
+        "description": "Community discussions, promotions, and announcements for Claude.",
+        "collection_interval_seconds": 300,
+    },
+    {
+        "name": "Reddit: r/ChatGPT",
+        "source_type": "reddit",
+        "identifier": "r/ChatGPT",
+        "url": "https://www.reddit.com/r/ChatGPT/",
+        "description": "Largest Reddit community for ChatGPT deals and updates.",
+        "collection_interval_seconds": 300,
+    },
+    {
+        "name": "Reddit: r/Grok",
+        "source_type": "reddit",
+        "identifier": "r/Grok",
+        "url": "https://www.reddit.com/r/Grok/",
+        "description": "Reddit community for xAI Grok subscriptions and features.",
+        "collection_interval_seconds": 300,
+    },
+    {
+        "name": "Reddit: r/PerplexityAI",
+        "source_type": "reddit",
+        "identifier": "r/PerplexityAI",
+        "url": "https://www.reddit.com/r/PerplexityAI/",
+        "description": "Perplexity community sharing student deals and Pro subscriptions.",
+        "collection_interval_seconds": 300,
+    },
+    {
+        "name": "Reddit: r/ArtificialIntelligence Deals Search",
+        "source_type": "reddit",
+        "identifier": "search:title:pro OR title:promo OR title:discount subreddit:ArtificialIntelligence",
+        "url": "https://www.reddit.com/r/ArtificialIntelligence/search",
+        "description": "Targeted search on r/ArtificialIntelligence for Pro subscription offers.",
+        "collection_interval_seconds": 600,
+    },
+    {
+        "name": "OpenAI Newsroom Feed",
+        "source_type": "rss",
+        "identifier": "https://openai.com/news/rss.xml",
+        "url": "https://openai.com/news/rss.xml",
+        "description": "Official RSS feed for OpenAI product launches and partnerships.",
+        "collection_interval_seconds": 900,
+    },
+    {
+        "name": "Google AI Blog Feed",
+        "source_type": "rss",
+        "identifier": "https://blog.google/technology/ai/rss/",
+        "url": "https://blog.google/technology/ai/rss/",
+        "description": "Google official updates for Gemini and Gemini Advanced.",
+        "collection_interval_seconds": 900,
+    },
+    {
+        "name": "GitHub Changelog Feed",
+        "source_type": "rss",
+        "identifier": "https://github.blog/changelog/feed/",
+        "url": "https://github.blog/changelog/feed/",
+        "description": "Official GitHub changelog for Copilot offers and updates.",
+        "collection_interval_seconds": 900,
+    },
+    {
+        "name": "Anthropic Newsroom",
+        "source_type": "website",
+        "identifier": "https://www.anthropic.com/news",
+        "url": "https://www.anthropic.com/news",
+        "description": "Anthropic official news and announcements page.",
+        "collection_interval_seconds": 1800,
+    },
+]
+
 
 def seed_database(db: Session) -> Dict[str, int]:
     """
@@ -198,13 +291,36 @@ def seed_database(db: Session) -> Dict[str, int]:
                 plans_created += 1
                 logger.info(f"Created plan: {plan.name} for {provider.name}")
 
+    sources_created = 0
+    for src_data in CURATED_SOURCES:
+        source_type_enum = SourceType(src_data["source_type"])
+        src_stmt = select(Source).where(
+            Source.source_type == source_type_enum,
+            Source.identifier == src_data["identifier"],
+        )
+        source = db.execute(src_stmt).scalar_one_or_none()
+        if not source:
+            source = Source(
+                name=src_data["name"],
+                source_type=source_type_enum,
+                identifier=src_data["identifier"],
+                url=src_data.get("url"),
+                description=src_data.get("description"),
+                collection_interval_seconds=src_data.get("collection_interval_seconds", 3600),
+                is_active=True,
+            )
+            db.add(source)
+            sources_created += 1
+            logger.info(f"Created source: {source.name} ({source.source_type.value})")
+
     db.commit()
     logger.info(
-        f"Seeding completed. Providers created: {providers_created}, Plans created: {plans_created}"
+        f"Seeding completed. Providers created: {providers_created}, Plans created: {plans_created}, Sources created: {sources_created}"
     )
     return {
         "providers_created": providers_created,
         "plans_created": plans_created,
+        "sources_created": sources_created,
     }
 
 
