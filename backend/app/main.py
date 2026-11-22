@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.routes import health, sources
+from app.api.routes import health, promotions, sources
 from app.core.config import settings
 from app.core.logging import setup_logging
 
@@ -68,6 +68,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 # Register API routers
 app.include_router(health.router, prefix=settings.API_PREFIX)
 app.include_router(sources.router, prefix=settings.API_PREFIX)
+app.include_router(promotions.router, prefix=settings.API_PREFIX)
 
 
 @app.get("/", include_in_schema=False)
