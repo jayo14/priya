@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import DbSession
 from app.database.models.promotion import Promotion
-from app.database.models.provider import Plan, Provider
+from app.database.models.provider import Provider
 
 router = APIRouter(prefix="/providers", tags=["Providers"])
 

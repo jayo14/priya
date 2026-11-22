@@ -4,15 +4,18 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.database.models.enums import NotificationStatus, NotificationType, OfferType, PromotionStatus
+from app.database.models.enums import (
+    NotificationStatus,
+    NotificationType,
+    OfferType,
+    PromotionStatus,
+)
 from app.database.models.notification import Notification
-from app.database.models.promotion import Promotion, PromotionLink
+from app.database.models.promotion import Promotion
 from app.database.models.provider import Provider
-from app.database.models.setting import AppSetting
 from app.notifications.dispatcher import NotificationDispatcher
 from app.notifications.formatter import format_expiring_alert, format_promotion_alert
 from app.notifications.telegram import TelegramNotifier

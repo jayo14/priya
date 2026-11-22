@@ -81,7 +81,6 @@ class NigeriaEligibilityAssessor:
 
         # 1. Geographic restriction analysis
         status = "unknown"
-        is_eligible = True
 
         upper_eligible = [c.upper() for c in eligible_countries]
         upper_excluded = [c.upper() for c in excluded_countries]
@@ -89,7 +88,6 @@ class NigeriaEligibilityAssessor:
         # Check explicit exclusion
         if "NG" in upper_excluded or "NIGERIA" in upper_excluded:
             status = "ineligible"
-            is_eligible = False
             rules.append(
                 StructuredEligibilityRule(
                     rule_type=EligibilityRuleType.EXCLUDED_COUNTRY,
@@ -114,7 +112,6 @@ class NigeriaEligibilityAssessor:
         elif upper_eligible and "NG" not in upper_eligible and "GLOBAL" not in upper_eligible:
             # If explicit countries like ["US", "CA", "UK"] are listed without NG
             status = "ineligible"
-            is_eligible = False
             allowed_str = ", ".join(upper_eligible)
             rules.append(
                 StructuredEligibilityRule(
@@ -129,7 +126,6 @@ class NigeriaEligibilityAssessor:
             # Check text indicators
             if re.search(r"\b(us\s+only|united\s+states\s+only|north\s+america\s+only|eu\s+only)\b", raw_lower):
                 status = "ineligible"
-                is_eligible = False
                 rules.append(
                     StructuredEligibilityRule(
                         rule_type=EligibilityRuleType.EXCLUDED_COUNTRY,

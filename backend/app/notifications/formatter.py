@@ -72,9 +72,9 @@ def format_promotion_alert(
     # Primary Redemption Link
     primary_link = None
     if promotion.links:
-        for l in promotion.links:
-            if l.is_primary or l.link_type.value == "redemption":
-                primary_link = l
+        for lnk in promotion.links:
+            if lnk.is_primary or lnk.link_type.value == "redemption":
+                primary_link = lnk
                 break
         if not primary_link:
             primary_link = promotion.links[0]

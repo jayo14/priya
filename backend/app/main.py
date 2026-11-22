@@ -14,9 +14,11 @@ from app.api.routes import (
     notifications,
     promotions,
     providers,
-    settings as settings_route,
     sources,
     watchlist,
+)
+from app.api.routes import (
+    settings as settings_route,
 )
 from app.core.config import settings
 from app.core.logging import setup_logging

@@ -9,16 +9,12 @@ Simulates the complete deterministic lifecycle:
 """
 
 import hashlib
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.database.models.enums import (
     NotificationStatus,
-    NotificationType,
     ProcessingStatus,
     PromotionStatus,
     SourceType,
@@ -27,9 +23,7 @@ from app.database.models.notification import Notification
 from app.database.models.promotion import Promotion, PromotionDiscovery
 from app.database.models.provider import Provider
 from app.database.models.source import DiscoveredItem, Source
-from app.intelligence.engine import IntelligenceEngine
 from app.notifications.dispatcher import NotificationDispatcher
-from app.notifications.telegram import TelegramNotifier
 from app.processing.pipeline import ProcessingPipeline
 
 

@@ -1,7 +1,7 @@
 """Dashboard summary metrics and activity API endpoints."""
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel

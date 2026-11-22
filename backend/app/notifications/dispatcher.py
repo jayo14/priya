@@ -11,7 +11,7 @@ from app.database.models.enums import NotificationStatus, NotificationType
 from app.database.models.notification import Notification
 from app.database.models.promotion import Promotion
 from app.database.models.setting import AppSetting
-from app.notifications.formatter import format_expiring_alert, format_promotion_alert
+from app.notifications.formatter import format_promotion_alert
 from app.notifications.telegram import TelegramNotifier
 
 logger = setup_logging()

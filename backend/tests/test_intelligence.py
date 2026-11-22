@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -13,11 +12,9 @@ from app.database.models.enums import (
     LinkType,
     OfferType,
     PromotionStatus,
-    SourceType,
 )
 from app.database.models.promotion import Promotion, PromotionLink
 from app.database.models.provider import Plan, Provider
-from app.database.models.source import DiscoveredItem, Source
 from app.intelligence.authenticity import AuthenticityAssessor
 from app.intelligence.eligibility import NigeriaEligibilityAssessor
 from app.intelligence.engine import IntelligenceEngine

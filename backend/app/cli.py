@@ -8,11 +8,8 @@ import argparse
 import asyncio
 import sys
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from app.core.logging import setup_logging
-from app.database.models.enums import ProcessingStatus, PromotionStatus
+from app.database.models.enums import PromotionStatus
 from app.database.models.promotion import Promotion
 from app.database.models.source import DiscoveredItem, Source
 from app.database.session import SessionLocal
