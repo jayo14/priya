@@ -25,10 +25,11 @@ When Priya finds an offer, she:
 
 ---
 
-## Current Status: Phase 2 Completed (Multi-Source Discovery Engine)
+## Current Status: Phase 3 Completed (Structured Promotion Discovery)
 
 - [x] **Phase 1: Foundation & Scaffolding**: Modular monolith architecture, Next.js 15 App Router frontend, FastAPI backend, SQLAlchemy 2.x, Alembic, PostgreSQL 16 schema, 10 domain models, idempotent seeder, integration test suite.
-- [x] **Phase 2: Discovery Infrastructure**: Common collector adapter interface, Telegram public channel preview collector, Reddit public community & search collector (with automatic RSS fallback), RSS/Atom newsroom collector, Web page crawler, deduplication engine (SHA-256 content hashing & external ID checks), background scheduler, and discovery API endpoints.
+- [x] **Phase 2: Discovery Infrastructure**: Multi-source discovery engine supporting Telegram public channels, Reddit communities & search, RSS/Atom newsroom feeds, and public web announcement scrapers with scheduling.
+- [x] **Phase 3: Extraction & Classification**: Text/URL normalizer, promotional keyword & spam filtering, deterministic AI provider/plan/offer-type classifier, parameter extractor (codes, duration, discounts, country eligibility), and multi-source corroboration deduplicator.
 
 ---
 
@@ -37,7 +38,7 @@ When Priya finds an offer, she:
 - **Frontend**: Next.js 15 (App Router), React 19, TypeScript (Strict Mode), Tailwind CSS, ESLint.
 - **Backend**: FastAPI, Python 3.12+, Pydantic v2, Pydantic Settings, SQLAlchemy 2.x, Psycopg 3, BeautifulSoup4, Feedparser, Uvicorn.
 - **Database**: PostgreSQL 16 with Alembic database migrations.
-- **Architecture**: Modular monolith with decoupled frontend and backend. Zero paid external API dependencies.
+- **Architecture**: Modular monolith with decoupled frontend, backend, discovery adapters, and processing pipeline.
 
 ---
 
@@ -54,25 +55,27 @@ priya/
 │
 ├── backend/              # FastAPI Python backend
 │   ├── app/
-│   │   ├── api/          # Route definitions (/health, /sources, /discovery)
+│   │   ├── api/          # Route definitions (/health, /sources, /promotions, /discovery, /processing)
 │   │   ├── core/         # Typed settings and structured logging
 │   │   ├── database/     # SQLAlchemy models, repositories, and seed logic
 │   │   ├── discovery/    # Multi-source collector adapters (Telegram, Reddit, RSS, Web)
-│   │   │   ├── base.py         # Abstract collector adapter contract
-│   │   │   ├── telegram.py     # Public Telegram channel preview collector
-│   │   │   ├── reddit.py       # Public Reddit JSON/RSS community collector
-│   │   │   ├── web.py          # RSS/Atom and Web page crawlers
-│   │   │   ├── orchestrator.py # Routing, persistence, content hash deduplication
-│   │   │   └── scheduler.py    # Asyncio periodic collection runner
+│   │   ├── processing/   # Extraction, classification, and deduplication
+│   │   │   ├── normalizer.py   # Text & URL normalization
+│   │   │   ├── filters.py      # Deal keyword & spam/scam detection
+│   │   │   ├── classifier.py   # Provider, plan, and offer type matching
+│   │   │   ├── extractor.py    # Structured parameters (codes, discounts, duration, countries)
+│   │   │   ├── deduplicator.py # Source corroboration & canonical promotion matching
+│   │   │   └── pipeline.py     # End-to-end processing pipeline
 │   │   └── main.py       # Application entry point & CORS
 │   ├── migrations/       # Alembic versioned migration scripts
-│   ├── tests/            # Pytest test suite against PostgreSQL (21 tests)
+│   ├── tests/            # Pytest test suite against PostgreSQL (28 tests)
 │   └── pyproject.toml    # Python dependencies and build config
 │
 ├── docs/                 # Engineering documentation
 │   ├── architecture.md   # System architecture and modular monolith boundaries
 │   ├── database.md       # Complete database schema, tables, and constraints
 │   ├── discovery.md      # Multi-source discovery engine design & operation
+│   ├── processing.md     # Extraction, classification, and corroboration pipeline
 │   ├── development.md    # Local development setup and workflows
 │   └── deployment.md     # Production deployment on Linux without Docker
 │
@@ -124,17 +127,20 @@ make frontend-dev
 
 ---
 
-## Discovery API Endpoints
+## API Summary
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/v1/health` | Application & PostgreSQL database health. |
-| `GET` | `/api/v1/sources` | List registered sources with filter by `source_type` or `is_active`. |
-| `POST` | `/api/v1/sources` | Register a new discovery source. |
-| `GET` | `/api/v1/sources/{id}` | Get source details and status. |
-| `POST` | `/api/v1/sources/{id}/collect` | Trigger immediate on-demand collection for a single source. |
-| `POST` | `/api/v1/discovery/collect-all` | Trigger discovery across all active sources. |
-| `GET` | `/api/v1/discovery/items` | Query raw discovered items with status filtering. |
+| Category | Method | Endpoint | Description |
+|---|---|---|---|
+| **Health** | `GET` | `/api/v1/health` | App & PostgreSQL status with latency. |
+| **Sources** | `GET` | `/api/v1/sources` | List registered sources. |
+| **Sources** | `POST` | `/api/v1/sources` | Register new source. |
+| **Sources** | `POST` | `/api/v1/sources/{id}/collect` | Trigger immediate collection for source. |
+| **Discovery**| `POST` | `/api/v1/discovery/collect-all` | Run discovery across all active sources. |
+| **Discovery**| `GET` | `/api/v1/discovery/items` | Query raw discovered items. |
+| **Pipeline** | `POST` | `/api/v1/processing/run` | Execute extraction pipeline on pending items. |
+| **Pipeline** | `GET` | `/api/v1/processing/stats` | Pipeline status counts (pending, processed, etc.). |
+| **Promotions**| `GET` | `/api/v1/promotions` | List canonical promotions (filter by provider, offer type, `nigeria_eligible`). |
+| **Promotions**| `GET` | `/api/v1/promotions/{id}` | Get promotion details with corroborations & links. |
 
 ---
 
@@ -145,7 +151,7 @@ make frontend-dev
 make check
 ```
 
-- **Backend tests**: `make test-backend` (21 tests against PostgreSQL)
+- **Backend tests**: `make test-backend` (28 integration tests against PostgreSQL)
 - **Backend linting**: `make lint-backend`
 - **Frontend linting**: `make lint-frontend`
 - **Frontend build**: `make build-frontend`

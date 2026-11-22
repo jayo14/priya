@@ -73,3 +73,14 @@ The discovery engine collects raw promotional content without premature filterin
    - Items are persisted in `discovered_items` with status `pending`.
 4. **Source State Tracking**: Updates `last_collected_at`, `last_successful_collection_at`, `last_error_at`, and `last_error_message` for full operational visibility.
 5. **Collection Scheduling**: Lightweight asyncio task runner (`DiscoveryScheduler`) executes collections at configured intervals (`collection_interval_seconds`) without Celery or Redis.
+
+## 6. Extraction, Classification & Corroboration Engine (Phase 3)
+
+The processing pipeline transforms raw `discovered_items` into structured, deduplicated canonical `promotions`:
+1. **Normalization**: Unescapes HTML entities, normalizes unicode spaces/quotes, and cleans URLs by removing tracking parameters (`utm_*`, `fbclid`).
+2. **Filtering & Spam Detection**: Matches positive deal patterns (`free trial`, `discount`, `promo code`, `student offer`) and blocks illicit account sales, cracking, and scams (`buy claude account`, `carding`, `cookie method`).
+3. **Deterministic Entity Classification**: Recognizes all 7 AI providers and their plans via regex and aliases. Assigns structured `OfferType`.
+4. **Offer Extraction**: Extracts promo codes, discount percentages, duration in days, geographic eligibility (Nigeria / Global), payment requirements, and account requirements without guessing or hallucinating missing fields.
+5. **Deduplication & Multi-Source Corroboration**: Evaluates whether an extracted promotion matches an existing canonical record by promo code, normalized URL, or domain/plan.
+   - If matched, links the discovery via `promotion_discoveries`, updating `last_discovered_at` and rewarding independent corroboration with higher confidence scores.
+   - If novel, provisions a new canonical `Promotion` with its primary redemption link.
