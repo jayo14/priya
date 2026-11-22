@@ -25,21 +25,22 @@ When Priya finds an offer, she:
 
 ---
 
-## Current Status: Phase 4 Completed (Promotion Intelligence & Verification)
+## Current Status: Phase 5 Completed (Dashboard APIs, Watchlist, Settings & Nuxt 3 Frontend)
 
-- [x] **Phase 1: Foundation & Scaffolding**: Modular monolith architecture, Next.js 15 App Router frontend, FastAPI backend, SQLAlchemy 2.x, Alembic, PostgreSQL 16 schema, 10 domain models, idempotent seeder, integration test suite.
+- [x] **Phase 1: Foundation & Scaffolding**: Modular monolith architecture, FastAPI backend, SQLAlchemy 2.x, Alembic, PostgreSQL 16 schema, 10 domain models, idempotent seeder, integration test suite.
 - [x] **Phase 2: Discovery Infrastructure**: Multi-source discovery engine supporting Telegram public channels, Reddit communities & search, RSS/Atom newsroom feeds, and public web announcement scrapers with scheduling.
 - [x] **Phase 3: Extraction & Classification**: Text/URL normalizer, promotional keyword & spam filtering, deterministic AI provider/plan/offer-type classifier, parameter extractor (codes, duration, discounts, country eligibility), and multi-source corroboration deduplicator.
 - [x] **Phase 4: Promotion Intelligence**: Safe URL inspection with SSRF defense, redirect resolution, brand impersonation detection, authenticity heuristics, dedicated Nigerian banking and payment card feasibility assessment, transparent 100-point confidence scoring rubric, and verification audit trails.
+- [x] **Phase 5: Dashboard Analytics, Watchlist & Nuxt 3 Frontend**: Dashboard statistics & activity feed, provider catalogue API, user watchlist endpoints, app settings API, and Nuxt 3 / Vue 3 frontend built with shadcn-vue tokens and Material Symbols Rounded icons.
 
 ---
 
 ## Technology Stack
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript (Strict Mode), Tailwind CSS, ESLint.
+- **Frontend**: Nuxt 3, Vue 3 (Composition API), Tailwind CSS, shadcn-vue design system (`radix-vue`, `cva`, `tailwind-merge`), Google Material Symbols (New) Rounded icons.
 - **Backend**: FastAPI, Python 3.12+, Pydantic v2, Pydantic Settings, SQLAlchemy 2.x, Psycopg 3, BeautifulSoup4, Feedparser, Uvicorn.
 - **Database**: PostgreSQL 16 with Alembic database migrations.
-- **Architecture**: Modular monolith with decoupled frontend, backend, discovery adapters, and processing pipeline.
+- **Architecture**: Modular monolith with decoupled Nuxt frontend, FastAPI backend, discovery adapters, intelligence engine, and processing pipeline.
 
 ---
 
@@ -47,11 +48,15 @@ When Priya finds an offer, she:
 
 ```text
 priya/
-├── frontend/             # Next.js 15 web client
-│   ├── app/              # App Router routes and layouts
-│   ├── components/       # UI components (HealthStatus, Navbar)
-│   ├── lib/              # Centralized API client (api.ts)
-│   ├── types/            # TypeScript interfaces
+├── frontend/             # Nuxt 3 web client
+│   ├── assets/           # CSS & styling
+│   ├── components/       # shadcn-vue primitives, DealCard, DealDetailModal, Navbar, MaterialIcon
+│   ├── composables/      # usePriyaApi auto-imported composable
+│   ├── layouts/          # Default layout shell
+│   ├── lib/              # Centralized API client (api.ts) & utils (cn)
+│   ├── pages/            # Nuxt file-based routes (index, deals, watchlist, sources, settings)
+│   ├── nuxt.config.ts    # Nuxt configuration & Google Fonts links
+│   ├── tailwind.config.ts # Theme and shadcn tokens
 │   └── package.json
 │
 ├── backend/              # FastAPI Python backend
@@ -153,6 +158,13 @@ make frontend-dev
 | **Intelligence**| `POST` | `/api/v1/promotions/{id}/verify` | Run verification checks and update confidence score. |
 | **Intelligence**| `GET` | `/api/v1/promotions/{id}/eligibility` | Get detailed Nigerian banking & regional eligibility breakdown. |
 | **Intelligence**| `GET` | `/api/v1/promotions/{id}/verification-checks` | List timestamped verification check audit logs. |
+| **Dashboard**   | `GET` | `/api/v1/dashboard/stats` | Discovery KPIs, provider deal distributions, recent deals. |
+| **Dashboard**   | `GET` | `/api/v1/dashboard/activity` | Recent 10 discovery & processing events. |
+| **Providers**   | `GET` | `/api/v1/providers` | List AI providers with plans and active deal counts. |
+| **Watchlist**   | `GET` | `/api/v1/watchlist` | Get saved promotions and watched provider IDs. |
+| **Watchlist**   | `POST` | `/api/v1/watchlist/promotions/{id}` | Toggle bookmark status of a promotion. |
+| **Settings**    | `GET` | `/api/v1/settings` | Get alert thresholds, Nigeria filter, and polling frequency. |
+| **Settings**    | `PATCH` | `/api/v1/settings` | Update user discovery and notification preferences. |
 
 ---
 
